@@ -43,7 +43,7 @@ export default StyleSheet.create({
         fontSize: 16,
         color: "#888",
     },
-    dashboardMeetingDate: {
+    dashboardDate: {
         fontSize: 12,
         color: "#888",
     },

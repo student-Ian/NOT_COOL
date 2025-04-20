@@ -6,6 +6,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 
 import Home from './app/Home'
 import Dashboard from './app/Dashboard'
+import Meetings from './app/Meetings'
+import MeetingDetails from './app/MeetingDetails'
 
 const Tab = createBottomTabNavigator()
 const Stack = createNativeStackNavigator()
@@ -22,12 +24,21 @@ const DashboardStack = () => (
     </Stack.Navigator>
 )
 
+const MeetingsStack = () => (
+    <Stack.Navigator initialRouteName="Meetings">
+        <Stack.Screen name="Meetings" component={Meetings} options={{ headerShown: false }} />
+        {/* <Stack.Screen name="MeetingDetails" component={MeetingDetails} options={{ headerTitle: "會議", headerStyle: { backgroundColor: "#F0EFF6" }, headerShadowVisible: false }} /> */}
+        <Stack.Screen name="MeetingDetails" component={MeetingDetails} options={{ headerShown: false }} />
+    </Stack.Navigator>
+)
+
 const App = () => {
     return (
         <NavigationContainer>
-            <Tab.Navigator initialRouteName="Dashboard" screenOptions={{ headerShown: false }}>
-                <Tab.Screen name="Home" component={HomeStack} />
-                <Tab.Screen name="Dashboard" component={DashboardStack} />
+            <Tab.Navigator initialRouteName="儀表板" screenOptions={{ headerShown: false }}>
+                <Tab.Screen name="首頁" component={HomeStack} />
+                <Tab.Screen name="儀表板" component={DashboardStack} />
+                <Tab.Screen name="會議" component={MeetingsStack} />
             </Tab.Navigator>
         </NavigationContainer>
     )
