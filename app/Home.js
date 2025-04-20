@@ -59,8 +59,15 @@ const Home = ({ navigation }) => {
                 value={TaskName}
                 onChangeText={setTaskName}
             />
+            <TextInput
+                style={styles.input}
+                placeholder="工作描述"
+                value={TaskDetail}
+                onChangeText={setTaskDetail}
+            />
 
             {/* 時間選擇器 */}
+            <Text>當前截止時間：{EndTime.toLocaleString()}</Text>
             <Button title="選擇截止時間" onPress={() => setShowPicker(true)} />
             {showPicker && (
                 <DateTimePicker
@@ -79,7 +86,6 @@ const Home = ({ navigation }) => {
             <Button title="送出" onPress={handleSubmit} />
 
             <Text style={styles.displayText}>{displayText}</Text>
-
         </View>
     );
 };

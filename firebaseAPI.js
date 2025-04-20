@@ -337,12 +337,11 @@ export const fetchUserMeeting = async (userID) => {
                 const data = doc.data();
                 return {
                     TaskID: data.TaskID,
-                    UserID: data.UserID,
-                    TaskName: data.TaskName,
-                    TaskDetail: data.TaskDetail,
-                    CreatedTime: data.CreatedTime.toDate(),
-                    EndTime: data.EndTime.toDate(),
-                    State: data.State,
+                    MeetingID: data.MeetingID,
+                    MeetingName: data.MeetingName,
+                    MeetingDetail: data.MeetingDetail,
+                    StartTime: data.StartTime.toDate(),
+                    Duration: data.Duration,
                 };
             });
 
