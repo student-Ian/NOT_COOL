@@ -1,67 +1,48 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, Button } from "react-native";
-import { db } from "@/firebaseConfig"; // 引入 Firebase 設定
-import { collection, addDoc, getDocs, Timestamp } from "firebase/firestore";
+import { addTask, fetchUserTask, fetchUserIDByUserName } from "../firebaseAPI";
+
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 import styles from "./Home.styles"; // 引入樣式
 
 const Home = ({ navigation }) => {
-    // 3 個輸入欄位
+    // 4 個輸入欄位
     const [UserName, setUserName] = useState("");
     const [TaskName, setTaskName] = useState("");
+    const [TaskDetail, setTaskDetail] = useState("");
     const [EndTime, setEndTime] = useState(new Date());
 
     const [displayText, setDisplayText] = useState("");
     const [Tasks, setTasks] = useState([]); // 儲存 Firebase 資料
     const [showPicker, setShowPicker] = useState(false); // 控制時間選擇器顯示
 
-    // 從 Firestore 讀取資料
-    const fetchData = async () => {
-        try {
-            const getTaskData = await getDocs(collection(db, "Tasks"));
-            const TasksData = getTaskData.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(), // 取得 Firestore 資料
-            }));
-
-            setTasks(TasksData); // 更新狀態
-            console.log("✅ Firebase 讀取成功！", TasksData);
-        } catch (error) {
-            console.error("❌ Firebase 讀取失敗：", error);
-        }
-    };
-
     // 提交資料到 Firebase
     const handleSubmit = async () => {
-        if (!UserName || !TaskName || !EndTime) {
+        if (!UserName || !TaskName || !TaskDetail || !EndTime) {
             alert("請填寫所有欄位！");
             return;
         }
 
-        const data = {
-            UserName,
-            TaskName,
-            EndTime: Timestamp.fromDate(EndTime) // Firestore 需要 Timestamp
-        };
-
-        setDisplayText(`名字: ${UserName}，工作名稱: ${TaskName}，死線: ${EndTime}`);
-
-        // 清空輸入框
-        setUserName("");
-        setTaskName("");
+        const Userinfo = await fetchUserIDByUserName(UserName);
 
         try {
-            await addDoc(collection(db, "Tasks"), data);
-            console.log("✅ Firebase 存入成功！", data);
+            await addTask({
+                UserID: Userinfo.UserID,
+                TaskName,
+                TaskDetail,
+                EndTime
+            });
+
+            setDisplayText(`已儲存：${UserName} - ${TaskName}`);
+            setUserName("");
+            setTaskName("");
+            setTaskDetail("");
         } catch (error) {
-            console.error("❌ Firebase 存入失敗：", error);
+            console.error("❌ 儲存失敗：", error);
+            alert("儲存失敗！");
         }
     };
-
-    useEffect(() => {
-        fetchData(); // 組件載入時讀取一次資料
-    }, []);
 
     return (
         <View style={styles.container}>
@@ -100,7 +81,6 @@ const Home = ({ navigation }) => {
 
             <Text style={styles.displayText}>{displayText}</Text>
 
-            <Button title="顯示紀錄" onPress={() => navigation.navigate("Records")} />
         </View>
     );
 };

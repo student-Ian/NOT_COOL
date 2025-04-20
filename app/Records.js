@@ -1,25 +1,24 @@
 import React, { useState, useEffect } from "react"
 import { View, Text, Button } from "react-native"
-import { db } from "@/firebaseConfig"
-import { collection, getDocs } from "firebase/firestore"
+import { fetchUserTask, fetchUserIDByUserName } from "../firebaseAPI";
+
 
 import styles from "./Records.styles"
 
 const Records = ({ navigation }) => {
     const [Tasks, setTasks] = useState([])
 
+    // 從 Firestore 讀取資料
     const fetchData = async () => {
         try {
-            const getTaskData = await getDocs(collection(db, "Tasks"))
-            const TasksData = getTaskData.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-            }))
+            const userID = "MI51nEam3GgPqbV7WQeP";
 
-            setTasks(TasksData)
-            console.log("Firebase 讀取成功！", TasksData)
+            const TasksData = await fetchUserTask(userID); // 使用你定義的 API
+
+            setTasks(TasksData); // 更新畫面用的 state
+            console.log("✅ 使用者任務讀取成功！", TasksData);
         } catch (error) {
-            console.error("Firebase 讀取失敗：", error)
+            console.error("❌ 任務讀取失敗：", error);
         }
     }
 
@@ -33,11 +32,10 @@ const Records = ({ navigation }) => {
             {
                 Tasks.map((task, index) => (
                     <Text key={index} style={styles.taskText}>
-                        {task.UserName} - {task.TaskName} - {task.EndTime?.toDate().toString()}
+                        {task.UserName} - {task.TaskName} - {task.EndTime?.toString()}
                     </Text>
                 ))
             }
-            <Button title="回到首頁" onPress={() => navigation.navigate("Home")} />
         </View>
     )
 }
