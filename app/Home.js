@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, Text, TextInput, Button } from "react-native";
-import { addTask, fetchUserTask, fetchUserIDByUserName } from "../firebaseAPI";
+import { addTask, fetchUserTask, fetchUserIDByUserName } from "@/firebaseAPI";
 
 import DateTimePicker from "@react-native-community/datetimepicker";
 
@@ -14,7 +14,6 @@ const Home = ({ navigation }) => {
     const [EndTime, setEndTime] = useState(new Date());
 
     const [displayText, setDisplayText] = useState("");
-    const [Tasks, setTasks] = useState([]); // 儲存 Firebase 資料
     const [showPicker, setShowPicker] = useState(false); // 控制時間選擇器顯示
 
     // 提交資料到 Firebase

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { View, Text, Button } from "react-native"
-import { fetchUserTask, fetchUserIDByUserName } from "../firebaseAPI";
+import { fetchUserTask, fetchUserIDByUserName } from "@/firebaseAPI";
 
 
 import styles from "./Records.styles"
