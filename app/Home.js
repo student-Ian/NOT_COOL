@@ -1,12 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, Button } from "react-native";
 import { addTask, fetchUserTask, fetchUserIDByUserName } from "@/firebaseAPI";
+
+// Notification
+import { registerForPushNotificationsAsync } from './notifications';
 
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 import styles from "./Home.styles"; // 引入樣式
 
 const Home = ({ navigation }) => {
+
+    // Test notification
+    useEffect(() => {
+        registerForPushNotificationsAsync().then(token => {
+        console.log("token", token);
+           if (token) {
+                // send token to your backend
+                fetch('http://localhost:3000/register-token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token }),
+            });
+        }
+        });
+      }, []);
+
     // 4 個輸入欄位
     const [UserName, setUserName] = useState("");
     const [TaskName, setTaskName] = useState("");
