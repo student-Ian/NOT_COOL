@@ -4,7 +4,6 @@ import { Platform } from 'react-native';
 
 export async function registerForPushNotificationsAsync() {
   let token;
-  console.log('token');
   
   try {
     if (Device.isDevice) {
@@ -23,11 +22,9 @@ export async function registerForPushNotificationsAsync() {
       }
       
       try {
-        console.log("expo");
-        // Try both with and without experienceId
         const tokenResponse = await Notifications.getExpoPushTokenAsync({
-          projectId: '02c768ba-cfc4-4dec-9c78-7f6b256b3a89',
-        });
+          projectId: "02c768ba-cfc4-4dec-9c78-7f6b256b3a89",
+        });        
         console.log("getToken");
         token = tokenResponse.data;
         console.log('Token response object:', JSON.stringify(tokenResponse));
