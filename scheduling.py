@@ -1,54 +1,117 @@
-from pulp import *
+from functools import partial
+import random
 
-def scheduling(P,D,C,C2,TH):
-    '''
-    P 是完成各個作業預計花費的時間且長度為N的陣列
-    D 是各個作業的截止時間且長度為N的陣列
-    C 是各個作業未及時完成(接受遲交的時間內)處罰的參數且長度為N的陣列
-    C2 是各個作業未及時完成(接受遲交的時間後)處罰的參數且長度為N的陣列
-    TH 是各個作業接受遲交的時間且長度為N的陣列
-    
-    此函示會回傳各個作業的完成時間
-    目前的演算法只適用於作業較少的狀況
-    '''
+def total_weighted_tardiness(seq,P,D,C,C2,TH):
+    t, total = 0, 0
+    for j in seq:
+        t += P[j]
+        total += C[j]*max(0, t-D[j])
+        total += C2[j]*max(0, t-TH[j]-D[j])
+    return total
 
+def crossover(p1, p2):
+    N = len(p1)
+    a,b = sorted(random.sample(range(N),2))
+    child = [-1]*N
+    child[a:b] = p1[a:b]
+    pos = b
+    for g in p2[b:]+p2[:b]:
+        if g not in child:
+            child[pos%N] = g
+            pos+=1
+    return child
+
+def mutate(seq, rate):
+    N = len(seq)
+    if random.random()<rate:
+        i,j = sorted(random.sample(range(N),2))
+        seq[i],seq[j] = seq[j],seq[i]
+
+
+def GA(P,D,C,C2,TH,pop_size=50, generations=500, cxr=0.8, mutr=0.2):
+    '''
+    P 是完成各個作業預計花費的時間且長度為N的陣列  
+    D 是各個作業的截止時間且長度為N的陣列  
+    C 是各個作業未及時完成(接受遲交的時間內)處罰的參數且長度為N的陣列  
+    C2 是各個作業未及時完成(接受遲交的時間後)處罰的參數且長度為N的陣列  
+    TH 是各個作業接受遲交的時間且長度為N的陣列  
+    pop_size 為生成陣列的長度  
+    generations 為運算次數  
+    cxr 為交叉機率  
+    mutr 為變異機率  
+
+    此函式會回傳作業完成的順序  
+    '''
     if not (len(P) == len(D) == len(C) == len(C2) == len(TH)):
         raise ValueError("參數 P, D, C, C2, TH 的長度必須相同")
     elif len(P) == 0:
         raise ValueError("參數 P, D, C, C2, TH 的長度必須大於零")
     
-    n = len(P)
-    m = LpProblem("task_scheduling", LpMinimize)
+    N = len(P)
+    pop = [random.sample(range(N), N) for _ in range(pop_size)]
+    for gen in range(generations):
+        pop = sorted(pop, key=partial(total_weighted_tardiness,P=P,D=D,C=C,C2=C2,TH=TH))
+        newpop = pop[:int(0.1*pop_size)] 
+        while len(newpop)<pop_size:
+            if random.random()<cxr:
+                p1,p2 = random.sample(pop[:20],2)
+                c = crossover(p1,p2)
+            else:
+                c = random.choice(pop)
+            mutate(c, mutr)
+            newpop.append(c)
+        pop = newpop
+    best = min(pop, key=partial(total_weighted_tardiness,P=P,D=D,C=C,C2=C2,TH=TH))
+    return best
 
-    z = []
-    for i in range(n):
-        z.append([])
-        for j in range(i+1,n):
-            z[i].append(LpVariable(f"seq_{i+1}_{j+1}", 0, 1, LpInteger))
-    x = []
-    for i in range(n):
-         x.append(LpVariable(f"time_{i+1}", P[i], None, LpContinuous))
+def GA_2(P,D,C,C2,TH,pop_size=50, generations=100, cxr=0.8, mutr=0.2):
+    '''
+    P 是完成各個作業預計花費的時間且長度為N的陣列  
+    D 是各個作業的截止時間且長度為N的陣列  
+    C 是各個作業未及時完成(接受遲交的時間內)處罰的參數且長度為N的陣列  
+    C2 是各個作業未及時完成(接受遲交的時間後)處罰的參數且長度為N的陣列  
+    TH 是各個作業接受遲交的時間且長度為N的陣列  
+    pop_size 為生成陣列的長度  
+    generations 為運算終止的條件  
+    cxr 為交叉機率  
+    mutr 為變異機率   
 
-    t = []
-    t2 = []
-    for i in range(n):
-        t.append(LpVariable(f"tar_{i+1}", 0, None, LpContinuous))
-        t2.append(LpVariable(f"tar2_{i+1}", TH[i], None, LpContinuous))
-
-    m += lpSum(C[i]*t[i]+C2[i]*(t2[i]-TH[i]) for i in range(n)), "Total_Cost_of_Lateness" 
+    此函式會回傳作業完成的順序  
+    排程效果比GA好但較慢
+    '''
+    if not (len(P) == len(D) == len(C) == len(C2) == len(TH)):
+        raise ValueError("參數 P, D, C, C2, TH 的長度必須相同")
+    elif len(P) == 0:
+        raise ValueError("參數 P, D, C, C2, TH 的長度必須大於零")
     
-    for i in range(n):
-        m += t[i] >= x[i]-D[i], f"tar_constrain_{i+1}"
-        m += t2[i] >= x[i]-D[i], f"tar2_constrain_{i+1}"
+    N = len(P)
+    pop = [random.sample(range(N), N) for _ in range(pop_size)]
+    count = 0
+    best = []
+    best_val = -1
+    while(count < generations):
+        pop = sorted(pop, key=partial(total_weighted_tardiness,P=P,D=D,C=C,C2=C2,TH=TH))
+        newpop = pop[:int(0.1*pop_size)] 
+        while len(newpop)<pop_size:
+            if random.random()<cxr:
+                p1,p2 = random.sample(pop[:20],2)
+                c = crossover(p1,p2)
+            else:
+                c = random.choice(pop)
+            mutate(c, mutr)
+            newpop.append(c)
+        pop = newpop
 
-        
-
-    M = sum(P) + max(P)
-    for i in range(n):
-        for j in range(i+1,n):
-            m += x[i] + P[j] - x[j] <= M*z[i][j-(i+1)], f"seq_constrain_{i+1}_{j+1}"
-            m += x[j] + P[i] - x[i] <= M*(1-z[i][j-(i+1)]), f"seq2_constrain_{i+1}_{j+1}"
-    
-    m.solve()
-    l = [x[i].varValue for i in range(n)]
-    return l
+        best_cand = min(pop, key=partial(total_weighted_tardiness,P=P,D=D,C=C,C2=C2,TH=TH))
+        best_val_cand = total_weighted_tardiness(best_cand,P,D,C,C2,TH)
+        if(best_val_cand < best_val or best_val < 0):
+            best = best_cand
+            best_val = best_val_cand
+            count = 0
+        elif(best_val_cand == 0):
+            best = best_cand
+            best_val = best_val_cand
+            break
+        else:
+            count += 1
+    return best
