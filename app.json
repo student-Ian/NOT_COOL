@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "NOTCOOL",
-    "slug": "NOTCOOL",
+    "slug": "sad-notifications",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -36,6 +36,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      }
+      // "eas": {
+      //   "": "02c768ba-cfc4-4dec-9c78-7f6b256b3a89"
+      // }
+    },
+    "owner": "darrellu"
   }
 }
